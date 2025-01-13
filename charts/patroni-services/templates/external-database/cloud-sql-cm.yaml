@@ -1,0 +1,20 @@
+{{ if .Values.externalDataBase }}
+{{ if eq ( lower .Values.externalDataBase.type) "cloudsql"}}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: cloud-sql-configuration
+  labels:
+    {{ include "external-database.cloudSQLConfigLabels" . | nindent 4 }}
+    name: cloud-sql-configuration
+    {{ include "kubernetes.labels" . | nindent 4 }}
+data:
+  region: {{ .Values.externalDataBase.region }}
+  project: {{ .Values.externalDataBase.project }}
+  instance: {{ .Values.externalDataBase.instance }}
+{{ end }}
+{{ end }}
+
+{{- if and (.Values.cloudSql) (.Values.patroni.install) }}
+{{- fail "It's not possible to install both Patroni and CloudSQL, failing the flow." }}
+{{- end }}

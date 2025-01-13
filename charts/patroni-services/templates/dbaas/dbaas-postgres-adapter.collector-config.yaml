@@ -1,0 +1,14 @@
+{{- if .Values.dbaas.install }}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: dbaas-postgres-adapter.collector-config
+  labels:
+    app: dbaas-postgres-adapter
+    name: dbaas-postgres-adapter
+      {{ include "kubernetes.labels" . | nindent 4 }}
+data:
+  telegraf-plugin-ura.json: >
+{{ .Files.Get "monitoring/dbaas-postgres-adapter.collector-config" | indent 4 }}
+{{- end }}
+

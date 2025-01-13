@@ -1,0 +1,17 @@
+{{- if .Values.dbaas.install }}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: dbaas-postgres-adapter.extensions-config
+  labels:
+    app: dbaas-postgres-adapter
+    name: dbaas-postgres-adapter
+      {{ include "kubernetes.labels" . | nindent 4 }}
+data:
+  {{- if and .Values.dbaas.extensions }}
+  dbaas.default_extensions.json: {{ (printf "{\"extensions\": [\"%s\"],\"updateRequired\": %t }" ( join "\",\"" .Values.dbaas.extensions )  ( default false .Values.dbaas.updateExtensions ) ) | quote }}
+  {{- else }}
+  dbaas.default_extensions.json: {{ (printf "{\"extensions\": [],\"updateRequired\": %t}" ( default false .Values.dbaas.updateExtensions ) ) | quote }}
+  {{- end }}
+{{- end }}
+
