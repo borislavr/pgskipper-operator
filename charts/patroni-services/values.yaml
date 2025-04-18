@@ -17,8 +17,8 @@ privateRegistry:
       create: false
       # registry: ghcr.io/netcracker
       # username:
-      # password: 
-      # email: 
+      # password:
+      # email:
 
 global:
   cloudIntegrationEnabled: true
@@ -373,7 +373,8 @@ powaUI:
     limits:
       cpu: 500m
       memory: 512Mi
-  securityContext: {}
+  securityContext:
+    runAsUser: 1001
 
 replicationController:
   install: false
