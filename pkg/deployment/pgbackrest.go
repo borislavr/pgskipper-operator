@@ -74,14 +74,6 @@ func getPgBackRestContainer(deploymentIdx int, patroniCoreSpec *v1.PatroniCoreSp
 				Name:  "POD_IDENTITY",
 				Value: fmt.Sprintf("node%v", deploymentIdx),
 			},
-			{
-				Name:  "PGBACKREST_PG1_PATH",
-				Value: fmt.Sprintf("/var/lib/pgsql/data/postgresql_node%v/", deploymentIdx),
-			},
-			{
-				Name:  "PGBACKREST_STANZA",
-				Value: "patroni",
-			},
 		},
 		Ports: []corev1.ContainerPort{
 			{ContainerPort: 3000, Name: "pgbackrest", Protocol: corev1.ProtocolTCP},
@@ -100,7 +92,7 @@ func getPgBackRestContainer(deploymentIdx int, patroniCoreSpec *v1.PatroniCoreSp
 				Name:      "pgbackrest-conf",
 			},
 		},
-		Resources: *patroniCoreSpec.Patroni.Resources,
+		Resources: getPgbackRestResources(patroniCoreSpec),
 	}
 	if strings.ToLower(patroniCoreSpec.PgBackRest.RepoType) == "rwx" {
 		backrestVolumeMount := corev1.VolumeMount{
@@ -110,6 +102,13 @@ func getPgBackRestContainer(deploymentIdx int, patroniCoreSpec *v1.PatroniCoreSp
 		pgBackRestContainer.VolumeMounts = append(pgBackRestContainer.VolumeMounts, backrestVolumeMount)
 	}
 	return pgBackRestContainer
+}
+
+func getPgbackRestResources(patroniCoreSpec *v1.PatroniCoreSpec) corev1.ResourceRequirements {
+	if patroniCoreSpec.PgBackRest.Resources == nil {
+		return *patroniCoreSpec.Patroni.Resources
+	}
+	return *patroniCoreSpec.PgBackRest.Resources
 }
 
 func GetPgBackRestCM(pgBackrestSpec *v1.PgBackRest) *corev1.ConfigMap {
@@ -173,11 +172,9 @@ func GetBackrestHeadless() *corev1.Service {
 func getPgBackRestSettings(pgBackrestSpec *v1.PgBackRest) string {
 	var listSettings []string
 	listSettings = append(listSettings, "[global]")
-	listSettings = append(listSettings, fmt.Sprintf("log-level-file=%s", "detail"))
-	listSettings = append(listSettings, fmt.Sprintf("log-level-console=%s", "info"))
 
-	listSettings = append(listSettings, "repo1-retention-full=5")
-	listSettings = append(listSettings, "repo1-retention-diff=3")
+	listSettings = append(listSettings, fmt.Sprintf("repo1-retention-full=%d", pgBackrestSpec.FullRetention))
+	listSettings = append(listSettings, fmt.Sprintf("repo1-retention-diff=%d", pgBackrestSpec.DiffRetention))
 
 	if pgBackrestSpec.RepoType == "s3" {
 		listSettings = append(listSettings, fmt.Sprintf("repo1-type=%s", pgBackrestSpec.RepoType))
@@ -195,6 +192,7 @@ func getPgBackRestSettings(pgBackrestSpec *v1.PgBackRest) string {
 	if pgBackrestSpec.RepoType == "rwx" {
 		listSettings = append(listSettings, "repo1-path=/var/lib/pgbackrest")
 	}
+	listSettings = append(listSettings, pgBackrestSpec.ConfigParams...)
 	settings := strings.Join(listSettings[:], "\n")
 	return settings
 }

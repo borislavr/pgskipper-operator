@@ -397,11 +397,13 @@ spec:
 
 {{ if .Values.pgBackRest }}
   pgBackRest:
-    dockerImage: {{ template "find_image" (dict "deployName" "pgbackrest_sidecar" "SERVICE_NAME" "pgbackrest_sidecar" "vals" .Values "default" .Values.pgBackRest.dockerImage) }}
     repoType: {{ .Values.pgBackRest.repoType  | default "rwx" }}
     repoPath: {{ .Values.pgBackRest.repoPath | default "/var/lib/pgbackrest" }}
     diffSchedule: {{ .Values.pgBackRest.diffSchedule | default "0 0/1 * * *" }}
     incrSchedule: {{ .Values.pgBackRest.incrSchedule | default "0 0/1 * * *" }}
+    fullRetention: {{ .Values.pgBackRest.fullRetention | default 5 }}
+    diffRetention: {{ .Values.pgBackRest.diffRetention | default 3 }}
+    configParams: {{ .Values.pgBackRest.configParams | default (list) | toJson }}
   {{ if .Values.pgBackRest.rwx }}
     rwx:
 {{ toYaml .Values.pgBackRest.rwx | indent 6 }}
