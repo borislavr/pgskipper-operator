@@ -154,8 +154,8 @@ jobs:
         with:
           charts_dir: charts
           release_name_template: "{{ .Version }}"
-          skip_existing: false
-          skip_upload: false
+          #skip_existing: false
+          #skip_upload: false
         env:
           CR_TOKEN: "${{ secrets.GITHUB_TOKEN }}"
 
