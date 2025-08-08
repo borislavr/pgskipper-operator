@@ -1,0 +1,25 @@
+apiVersion: v1
+entries:
+  patroni-core:
+  - apiVersion: v2
+    appVersion: 1.16.0
+    created: "2025-08-08T13:12:47.514184816Z"
+    description: A Helm chart for Kubernetes
+    digest: 6fe71e58058319bfe11550b9fab434902eaa7c399be773cc2c327dc343a9d28e
+    name: patroni-core
+    type: application
+    urls:
+    - https://github.com/borislavr/pgskipper-operator/releases/download/patroni-core-0.0.1/patroni-core-0.0.1.tgz
+    version: 0.0.1
+  patroni-services:
+  - apiVersion: v2
+    appVersion: 1.16.0
+    created: "2025-08-08T13:12:47.659178433Z"
+    description: A Helm chart for patroni-services
+    digest: 35aceb8720b18ad1129368c62e1ea4c4a825a7b5e689d84686d98a97d2a9b80d
+    name: patroni-services
+    type: application
+    urls:
+    - https://github.com/borislavr/pgskipper-operator/releases/download/patroni-services-0.0.1/patroni-services-0.0.1.tgz
+    version: 0.0.1
+generated: "2025-08-08T13:12:47.659188843Z"
