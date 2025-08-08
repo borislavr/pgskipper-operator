@@ -3,7 +3,7 @@
     {
       "name": "pgskipper-operator",
       "file": "build/Dockerfile",
-      "context": "build"
+      "context": "."
     },
     {
       "name": "pgskipper-operator-tests",
@@ -12,7 +12,7 @@
     },
     {
       "name": "pgskipper-operator-transfer",
-      "file": "docker-transfer/Dockerfile",
+      "file": "./docker-transfer/Dockerfile",
       "context": "."
     }
   ],
