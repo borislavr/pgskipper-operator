@@ -149,15 +149,20 @@ jobs:
           git config user.email "$GITHUB_ACTOR@users.noreply.github.com"
 
       - name: Run chart-releaser
-        #continue-on-error: true
+        id: chart-releaser
         uses: netcracker/chart-releaser-action@main
         with:
           charts_dir: charts
-          release_name_template: "{{ .Version }}"
+          release_name_template: "{{ .Name }}-{{ .Version }}"
           #skip_existing: false
           #skip_upload: false
         env:
           CR_TOKEN: "${{ secrets.GITHUB_TOKEN }}"
+
+      - name: Show chart-releaser output
+        run: |
+          echo "::debug::Changed Charts: ${{ steps.chart-releaser.outputs.changed_charts}}"
+          echo "::debug::Charts versions: ${{ steps.chart-releaser.outputs.chart_version}}"
 
       - name: "Release-drafter"
         uses: netcracker/release-drafter@master
