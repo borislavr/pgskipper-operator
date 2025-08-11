@@ -28,7 +28,7 @@ serviceAccount:
   name: "patroni-sa"
 
 operatorInit:
-  image: ghcr.io/netcracker/qubership-credential-manager:main
+  image: ghcr.io/netcracker/qubership-credential-manager:v0.0.6
   resources:
     limits:
       cpu: 50m
@@ -40,7 +40,7 @@ operatorInit:
 ##  This section describes values for postgres-operator deployment
 operator:
   # Docker Image that will be used to Postgres Operator deployment
-  image: ghcr.io/netcracker/pgskipper-operator:main
+  image: ghcr.io/netcracker/pgskipper-operator:0.0.3
   podLabels: {}
   securityContext: {}
   waitTimeout: 10
@@ -106,7 +106,7 @@ patroni:
   # The number of Patroni (Postgres) nodes. One of these nodes is a master, and the others are replicas.
   replicas: 2
   # Docker Image that will be used for Patroni container
-  dockerImage: ghcr.io/netcracker/pgskipper-patroni-16:main
+  dockerImage: ghcr.io/netcracker/pgskipper-patroni-16:2.0.0
   podLabels: {}
   podAnnotations: {}
   configMapAnnotations: {}
@@ -228,7 +228,7 @@ patroni:
   majorUpgrade:
     enabled: false
     #    initDbParams: "--encoding=UTF8 --data-checksums --lc-collate=C --lc-ctype=C"
-    dockerUpgradeImage: ghcr.io/netcracker/pgskipper-upgrade:main
+    dockerUpgradeImage: ghcr.io/netcracker/pgskipper-upgrade:release-2025.3-1.49.0
   securityContext: {}
     #    fsGroupChangePolicy: OnRootMismatch
     #  pgWalStorageAutoManage: false
@@ -281,7 +281,7 @@ patroni:
 
 tests:
   install: true
-  dockerImage: ghcr.io/netcracker/pgskipper-operator-tests:main
+  dockerImage: ghcr.io/netcracker/pgskipper-operator-tests:0.0.3
   podLabels: {}
   # One of "full", "basic"or one from testScenarios
   runTestScenarios: "basic"
