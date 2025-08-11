@@ -153,9 +153,9 @@ jobs:
         uses: netcracker/chart-releaser-action@main
         with:
           charts_dir: charts
-          release_name_template: "{{ .Name }}-{{ .Version }}"
-          #skip_existing: false
-          #skip_upload: false
+          release_name_template: "{{ .Version }}"
+          skip_existing: true
+          skip_upload: true
         env:
           CR_TOKEN: "${{ secrets.GITHUB_TOKEN }}"
 
