@@ -3,6 +3,32 @@ on:
   push:
     branches:
       - main
+  workflow_dispatch:
+    inputs:
+      commit-message:
+        description: 'Commit message for the license header changes' # Applicable for mode 'fix'
+        type: string
+        required: false
+        default: 'chore: add license headers to source files' # Applicable for mode 'fix'
+      title:
+        type: string
+        description: 'Title for the pull request'
+        required: false
+        default: 'chore: add license headers to source files' # Applicable for mode 'fix'
+      body:
+        type: string
+        description: 'Body for the pull request'
+        required: false
+        default: 'This PR adds Apache license headers to all applicable source files.' # Applicable for mode 'fix'
+      mode:
+        type: choice
+        description: 'Mode for the license header action'
+        required: false
+        default: 'fix'
+        options:
+          - fix
+          - check
+
 jobs:
   license:
     permissions:
@@ -16,19 +42,15 @@ jobs:
         continue-on-error: true
         uses: apache/skywalking-eyes/header@v0.7.0
         with:
-          mode: fix
-      - name: Install addlicense
-        run: |
-          go install github.com/google/addlicense@latest
-          echo "$(go env GOPATH)/bin" >> $GITHUB_PATH
-      - name: Add license headers
-        run: addlicense -v -y "2024-2025"-c "NetCracker Technology Corporation" -l apache **/*.go
+          mode: ${{ inputs.mode || 'fix' }} # default to fix
+
       - name: Create Pull Request
+        if: inputs.mode == 'fix'
         uses: peter-evans/create-pull-request@v7.0.8
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
-          commit-message: "chore: add license headers to source files"
-          title: "chore: add license headers to source files"
-          body: "This PR adds Apache license headers to all applicable source files."
+          commit-message: "${{ inputs.commit-message || 'chore: add license headers to source files' }}"
+          title: "${{ inputs.title || 'chore: add license headers to source files' }}"
+          body: "${{ inputs.body || 'This PR adds Apache license headers to all applicable source files.'}}"
           branch: add-license-headers
           base: main
