@@ -11,5 +11,8 @@ header:
     - 'LICENSE'
     - 'NOTICE'
     - '.github'
+    - '**/*.json'
+    - '**/*.robot'
+    - '**/*.txt'
 
   comment: on-failure

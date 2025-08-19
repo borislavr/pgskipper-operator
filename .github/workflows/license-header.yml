@@ -45,7 +45,7 @@ jobs:
           mode: ${{ inputs.mode || 'fix' }} # default to fix
 
       - name: Create Pull Request
-        if: inputs.mode == 'fix'
+        if: inputs.mode == 'fix' || github.event_name == 'push'
         uses: peter-evans/create-pull-request@v7.0.8
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
