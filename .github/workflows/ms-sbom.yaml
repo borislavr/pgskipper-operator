@@ -1,3 +1,10 @@
+name: "MS SBOM tool"
+on:
+  workflow_dispatch: {}
+jobs:
+  sbom:
+    runs-on: ubuntu-latest
+    steps:
       - name: Generate SBOM
         run: |
           curl -Lo $RUNNER_TEMP/sbom-tool https://github.com/microsoft/sbom-tool/releases/latest/download/sbom-tool-linux-x64
