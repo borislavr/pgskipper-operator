@@ -174,10 +174,16 @@ jobs:
           version: ${{ inputs.release }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: install bom tool
+        run: |
+          go install sigs.k8s.io/bom/cmd/bom@latest
+          echo "$(go env GOPATH)/bin" >> $GITHUB_PATH
+      - name: "Generate sbom"
+        run: bom generate .cr-release-packages -o .cr-release-packages/bom.json --format json
       - name: Upload Assets
         uses: netcracker/qubership-workflow-hub/actions/assets-action@v1.0.4
         with:
           tag: ${{ inputs.release }}
-          item-path: .cr-release-packages/*.tgz
+          item-path: .cr-release-packages/*
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
