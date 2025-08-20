@@ -1,5 +1,5 @@
 name: "Generate SBOM file and upload it to GitHub Release"
-
+run_name: "Generate SBOM file and upload it to GitHub Release ${{ inputs.release-tag }}"
 on:
   release:
     types: [released]
