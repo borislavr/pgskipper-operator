@@ -34,7 +34,7 @@ jobs:
         run: |
           cd ${GITHUB_WORKSPACE}
           export FETCH_LICENSE=true
-          docker run --rm -e FETCH_LICENSE=true -v /tmp:/tmp -v $(pwd):/app:rw -t ghcr.io/cyclonedx/cdxgen:v8.6.0 -r /app -p -o /app/${{ github.event.repository.name }}_sbom.${{ env.RELEASE_VERSION }}.json
+          docker run --rm -e FETCH_LICENSE=true -v /tmp:/tmp -v $(pwd):/app:rw -t ghcr.io/cyclonedx/cdxgen:v8.6.0 -r /app/charts -p -o /app/${{ github.event.repository.name }}_sbom.${{ env.RELEASE_VERSION }}.json
           docker rmi -f $(docker images -aq)
         shell: bash
 
