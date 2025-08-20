@@ -1,3 +1,12 @@
+---
+
+# The workflow needs configuration file in the root of the repository
+# The default file name is `.licenserc.yaml`
+# You can find configuration file example here:
+# https://github.com/Netcracker/.github/blob/main/config/examples/.licenserc.yaml
+# Full documentation is available here:
+# https://github.com/apache/skywalking-eyes
+
 name: Add License Headers
 on:
   push:
