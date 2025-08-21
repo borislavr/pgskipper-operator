@@ -12,19 +12,6 @@ concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 jobs:
-  check-tag:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Check if tag exists
-        id: check_tag
-        uses: netcracker/qubership-workflow-hub/actions/tag-action@v1.0.4
-        with:
-          tag-name: '${{ github.sha }}'
-          ref: ${{ github.ref }}
-          create-tag: false
-          check-tag: true
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
   load-docker-build-components:
     runs-on: ubuntu-latest
     outputs:
@@ -60,7 +47,7 @@ jobs:
           echo "platforms=${platforms}" >> $GITHUB_OUTPUT
 
   chart-release-prepare:
-    needs: [check-tag, load-docker-build-components]
+    needs: [load-docker-build-components]
     runs-on: ubuntu-latest
     outputs:
       images-versions: ${{ steps.update-versions.outputs.images-versions }}
@@ -74,7 +61,7 @@ jobs:
         id: update-versions
         uses: netcracker/qubership-workflow-hub/actions/charts-values-update-action@feature/chart-publish-action
         with:
-          release-version: ${{ github.sha }}
+          release-version: 1.0.0-${{ github.sha }}
           config-file: .github/charts-values-update-config.yaml
           create-release-branch: false
           package-charts: true
@@ -98,7 +85,7 @@ jobs:
       - name: Get version for current component
         id: get-version
         run: |
-          echo "IMAGE_VERSION=${{ fromJson(needs.chart-release-prepare.outputs.images-versions)[matrix.component.name] || github.sha }}" >> $GITHUB_ENV
+          echo "IMAGE_VERSION=${{ fromJson(needs.chart-release-prepare.outputs.images-versions)[matrix.component.name] || format('%s-%s','1.0.0-', github.sha) }}" >> $GITHUB_ENV
 
       - name: Docker build
         uses: netcracker/qubership-workflow-hub/actions/docker-action@v1.0.4
