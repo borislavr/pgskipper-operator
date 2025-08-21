@@ -61,7 +61,8 @@ jobs:
         id: update-versions
         uses: netcracker/qubership-workflow-hub/actions/charts-values-update-action@feature/chart-publish-action
         with:
-          release-version: 1.0.0-${{ github.sha }}
+          release-version: ${{ github.sha }}
+          chart-version: ${{ format('%s-%s', '1.0.0',github.sha) }}
           config-file: .github/charts-values-update-config.yaml
           create-release-branch: false
           package-charts: true
@@ -85,7 +86,7 @@ jobs:
       - name: Get version for current component
         id: get-version
         run: |
-          echo "IMAGE_VERSION=${{ fromJson(needs.chart-release-prepare.outputs.images-versions)[matrix.component.name] || format('%s-%s','1.0.0-', github.sha) }}" >> $GITHUB_ENV
+          echo "IMAGE_VERSION=${{ fromJson(needs.chart-release-prepare.outputs.images-versions)[matrix.component.name] || github.sha }}" >> $GITHUB_ENV
 
       - name: Docker build
         uses: netcracker/qubership-workflow-hub/actions/docker-action@v1.0.4
