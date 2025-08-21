@@ -62,7 +62,7 @@ jobs:
         uses: netcracker/qubership-workflow-hub/actions/charts-values-update-action@feature/chart-publish-action
         with:
           release-version: ${{ github.sha }}
-          chart-version: ${{ format('%s-%s', '1.0.0',github.sha) }}
+          chart-version: '1.0.0'
           config-file: .github/charts-values-update-config.yaml
           create-release-branch: false
           package-charts: true
