@@ -79,16 +79,15 @@ jobs:
             #echo "include_jobs=[${include_jobs::-1}]" | tr -d '[:space:]' >> $GITHUB_OUTPUT
 
             exclude_jobs='
-              ${{ steps.changed-files.outputs.pgskipper-operator_any_changed == 'true' && '{"component":[{"name":"pgskipper-operator"}]},' || '' }}
-              ${{ steps.changed-files.outputs.pgskipper-operator-tests_any_changed == 'true' && '{"component":[{"name":"pgskipper-operator-tests"}]},' || '' }}
-              ${{ steps.changed-files.outputs.docker-transfer_any_changed == 'true' && '{"component":[{"name":"pgskipper-operator-transfer"}]},' || '' }}
+              ${{ steps.changed-files.outputs.pgskipper-operator_any_changed == 'false' && '{"component":[{"name":"pgskipper-operator"}]},' || '' }}
+              ${{ steps.changed-files.outputs.pgskipper-operator-tests_any_changed == 'false' && '{"component":[{"name":"pgskipper-operator-tests"}]},' || '' }}
+              ${{ steps.changed-files.outputs.docker-transfer_any_changed == 'false' && '{"component":[{"name":"pgskipper-operator-transfer"}]},' || '' }}
             '
-            echo "[${exclude_jobs::-1}]" | tr -d '[:space:]'
-            echo "exclude_jobs=[${exclude_jobs::-1}]" | tr -d '[:space:]' >> $GITHUB_OUTPUT
+            echo "[${exclude_jobs%?}]" | tr -d '[:space:]'
+            echo "exclude_jobs=[${exclude_jobs%?}]" | tr -d '[:space:]' >> $GITHUB_OUTPUT
 
   multiplatform_build:
     needs: diff-detect
-    if: ${{ needs.diff-detect.outputs.any-changed == 'true' }}
     strategy:
       fail-fast: false
       matrix:
