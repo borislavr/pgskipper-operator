@@ -102,4 +102,5 @@ jobs:
 
       - name: Show chart-releaser output
         run: |
-          echo "::debug::Charts metadata: ${{ needs.chart-release-prepare.outputs.charts-metadata }}"
+          echo "::debug::Charts metadata: $(jq . <<< '${{ needs.chart-release-prepare.outputs.charts-metadata }}')"
+          echo "$(jq . <<< '${{ needs.chart-release-prepare.outputs.charts-metadata }}')" >> $GITHUB_STEP_SUMMARY
