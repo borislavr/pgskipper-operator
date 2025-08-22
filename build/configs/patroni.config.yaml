@@ -95,3 +95,5 @@ tags:
   nofailover: ${DR_MODE}
   noloadbalance: false
   nosync: false
+
+# vim: ft=yaml

@@ -57,7 +57,13 @@ jobs:
           #dir_names: 'true'
           dir_names_exclude_current_dir: 'true'
           #dir_names_max_depth: '1'
-          files: ${{ matrix.component.directory }}
+          files: "${{ matrix.component.directory }}/**"
+      - name: List all changed files
+        env:
+          ALL_CHANGED_FILES: ${{ steps.changed-files.outputs.all_changed_files }}
+        run: |
+            echo "${ALL_CHANGED_FILES}"
+            echo "Changed files in ${{ matrix.component.directory }}: ${ALL_CHANGED_FILES}" >> $GITHUB_STEP_SUMMARY
       - name: Skip build if no changes
         if: ${{ steps.changed-files.outputs.any_changed == 'false' }}
         run: |
