@@ -61,6 +61,7 @@ jobs:
       - name: Skip build if no changes
         if: ${{ steps.changed-files.outputs.any_changed == 'false' }}
         run: |
+          echo "No changes in ${{ matrix.component.directory }}, skipping build of ${{ matrix.component.name }}." >> $GITHUB_STEP_SUMMARY
           echo "No changes in ${{ matrix.component.directory }}, skipping build."
           exit 0
       - name: Set up QEMU
