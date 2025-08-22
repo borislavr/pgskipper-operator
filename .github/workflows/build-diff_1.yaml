@@ -105,7 +105,7 @@ jobs:
             context: "."
         exclude:
           - component:
-              - name: pgskipper-operator
+              name: pgskipper-operator
         #exclude: ${{ fromJson(needs.diff-detect.outputs.exclude-jobs) }}
     runs-on: ubuntu-latest
     steps:
