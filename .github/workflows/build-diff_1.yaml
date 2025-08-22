@@ -83,7 +83,7 @@ jobs:
               ${{ steps.changed-files.outputs.pgskipper-operator-tests_any_changed == 'true' && '{"component":[{"name":"pgskipper-operator-tests","file":"tests/Dockerfile","context":"tests"}]},' || '' }}
               ${{ steps.changed-files.outputs.docker-transfer_any_changed == 'true' && '{"component":[{"name":"pgskipper-operator-transfer","file":"docker-transfer/Dockerfile","context": "."}]},' || '' }}
             '
-            echo "include_jobs=[${include_jobs::-1}]" >> $GITHUB_OUTPUT
+            echo "include_jobs=[${include_jobs::-1}]" | tr -d '[:space:]' >> $GITHUB_OUTPUT
 
   multiplatform_build:
     needs: diff-detect
