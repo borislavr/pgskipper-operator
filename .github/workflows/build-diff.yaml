@@ -3,21 +3,20 @@ on:
   push:
     branches:
       - '**'
-  workflow_dispatch:
-    inputs:
-      publish_docker:
-        description: "Publish image to ghcr.io/netcracker/pgskipper-operator"
-        type: boolean
-        default: false
-        required: false
+    paths:
+      - 'build/**'
+      - 'tests/**'
+      - 'docker-transfer/**'
+      - 'charts/**'
+      - 'docks/**'
 
 concurrency:
   group: build-and-push-${{ github.ref }}
   cancel-in-progress: true
 
 env:
-  TAG_NAME: ${{ github.event.release.tag_name || github.ref }}
-  PUSH: ${{ (github.event_name != 'workflow_dispatch' || inputs.publish_docker) && github.actor != 'dependabot[bot]' }}
+  TAG_NAME: ${{ github.ref }}
+  PUSH: ${{ github.actor != 'dependabot[bot]' }}
 
 jobs:
   multiplatform_build:
@@ -28,15 +27,15 @@ jobs:
           - name: pgskipper-operator
             file: build/Dockerfile
             context: ""
-            directory: "build"
+            directory: "build/**"
           - name: pgskipper-operator-tests
             file: tests/Dockerfile
             context: "tests"
-            directory: "tests"
+            directory: "tests/**"
           - name: pgskipper-operator-transfer
             file: docker-transfer/Dockerfile
             context: "."
-            directory: "docker-transfer"
+            directory: "docker-transfer/**,docs/**,charts/**"
     runs-on: ubuntu-24.04
     steps:
       - name: Validate
@@ -57,18 +56,19 @@ jobs:
           #dir_names: 'true'
           dir_names_exclude_current_dir: 'true'
           #dir_names_max_depth: '1'
-          files: "${{ matrix.component.directory }}/**"
+          files: "${{ matrix.component.directory }}"
+          files_separator: ','
       - name: List all changed files
         env:
           ALL_CHANGED_FILES: ${{ steps.changed-files.outputs.all_changed_files }}
         run: |
             echo "${ALL_CHANGED_FILES}"
-            echo "Changed files in ${{ matrix.component.directory }}: ${ALL_CHANGED_FILES}" >> $GITHUB_STEP_SUMMARY
+            echo "✅ Changed files in ${{ matrix.component.directory }}: ${ALL_CHANGED_FILES}" >> $GITHUB_STEP_SUMMARY
       - name: Skip build if no changes
         if: ${{ steps.changed-files.outputs.any_changed == 'false' }}
         run: |
-          echo "No changes in ${{ matrix.component.directory }}, skipping build of ${{ matrix.component.name }}." >> $GITHUB_STEP_SUMMARY
-          echo "No changes in ${{ matrix.component.directory }}, skipping build."
+          echo "ℹ️ No changes in ${{ matrix.component.directory }}, skipping build of ${{ matrix.component.name }}." >> $GITHUB_STEP_SUMMARY
+          echo "ℹ️ No changes in ${{ matrix.component.directory }}, skipping build."
           exit 0
       - name: Set up QEMU
         if: ${{ steps.changed-files.outputs.any_changed == 'true' }}

@@ -32,6 +32,7 @@ RUN chmod -R g=u /etc/passwd && \
 
 COPY ./app/* /app/
 COPY robot /test_runs/
+COPY charts /charts
 
 RUN chgrp -R 0 /app && chmod g+w /app && \
     chgrp -R 0 /test_runs && chmod -R g+w /test_runs && \
