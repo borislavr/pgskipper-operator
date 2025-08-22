@@ -80,9 +80,9 @@ jobs:
             #echo "include_jobs=[${include_jobs::-1}]" | tr -d '[:space:]' >> $GITHUB_OUTPUT
 
             exclude_jobs='
-              ${{ steps.changed-files.outputs.pgskipper-operator_any_changed == 'false' && '{"component":[{"name":"pgskipper-operator"}]},' || '' }}
-              ${{ steps.changed-files.outputs.pgskipper-operator-tests_any_changed == 'false' && '{"component":[{"name":"pgskipper-operator-tests"}]},' || '' }}
-              ${{ steps.changed-files.outputs.docker-transfer_any_changed == 'false' && '{"component":[{"name":"pgskipper-operator-transfer"}]},' || '' }}
+              ${{ steps.changed-files.outputs.pgskipper-operator_any_changed == 'false' && '{"component":{"name":"pgskipper-operator"}},' || '' }}
+              ${{ steps.changed-files.outputs.pgskipper-operator-tests_any_changed == 'false' && '{"component":{"name":"pgskipper-operator-tests"}},' || '' }}
+              ${{ steps.changed-files.outputs.docker-transfer_any_changed == 'false' && '{"component":{"name":"pgskipper-operator-transfer"}},' || '' }}
             '
             exclude_jobs=$(echo "${exclude_jobs}" | tr -d '[:space:]' | sed 's/,$//')
             echo "[${exclude_jobs}]"
@@ -103,10 +103,10 @@ jobs:
           - name: pgskipper-operator-transfer
             file: docker-transfer/Dockerfile
             context: "."
-        exclude:
-          - component:
-              name: pgskipper-operator
-        #exclude: ${{ fromJson(needs.diff-detect.outputs.exclude-jobs) }}
+        # exclude:
+        #   - component:
+        #       name: pgskipper-operator
+        exclude: ${{ fromJson(needs.diff-detect.outputs.exclude-jobs) }}
     runs-on: ubuntu-latest
     steps:
       - name: Validate
