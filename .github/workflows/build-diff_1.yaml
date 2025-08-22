@@ -83,7 +83,7 @@ jobs:
               ${{ steps.changed-files.outputs.pgskipper-operator-tests_any_changed == 'false' && '{"component":[{"name":"pgskipper-operator-tests"}]},' || '' }}
               ${{ steps.changed-files.outputs.docker-transfer_any_changed == 'false' && '{"component":[{"name":"pgskipper-operator-transfer"}]},' || '' }}
             '
-            exclude_jobs=$(echo "${eclude_jobs}" | tr -d '[:space:]' | sed 's/,$//')
+            exclude_jobs=$(echo "${exclude_jobs}" | tr -d '[:space:]' | sed 's/,$//')
             echo "[${exclude_jobs}]"
             echo "exclude_jobs=[${exclude_jobs}]" >> $GITHUB_OUTPUT
 
