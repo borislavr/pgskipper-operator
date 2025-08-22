@@ -40,7 +40,7 @@ jobs:
           files_yaml: |
             pgskipper-operator:
               - build/**
-            pgskipper-operator-tests
+            pgskipper-operator-tests:
               - tests/**
             docker-transfer:
               - docker-transfer/**
