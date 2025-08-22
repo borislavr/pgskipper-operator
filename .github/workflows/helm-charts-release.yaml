@@ -2,33 +2,16 @@
 
 name: Helm Charts Release
 on:
-  workflow_dispatch:
-    inputs:
-      release:
-        description: 'Release version'
-        required: true
-        type: string
+  workflow_dispatch: {}
+
 permissions:
   contents: write
   packages: write
-run-name: ${{ github.repository }} Release ${{ github.event.inputs.release }}
+
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 jobs:
-  check-tag:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Check if tag exists
-        id: check_tag
-        uses: netcracker/qubership-workflow-hub/actions/tag-action@v1.0.4
-        with:
-          tag-name: '${{ inputs.release }}'
-          ref: ${{ github.ref }}
-          create-tag: false
-          check-tag: true
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
   load-docker-build-components:
     runs-on: ubuntu-latest
     outputs:
@@ -63,34 +46,12 @@ jobs:
           echo "components=${components}" >> $GITHUB_OUTPUT
           echo "platforms=${platforms}" >> $GITHUB_OUTPUT
 
-  docker-check-build:
-    needs: [load-docker-build-components, check-tag]
-    runs-on: ubuntu-latest
-    strategy:
-      fail-fast: true
-      matrix:
-        component: ${{ fromJson(needs.load-docker-build-components.outputs.component) }}
-    steps:
-      - name: Get version for current component
-        id: get-version
-        run: |
-          echo "IMAGE=${{ matrix.component.name }}" >> $GITHUB_ENV
-      - name: Docker build
-        uses: netcracker/qubership-workflow-hub/actions/docker-action@v1.0.4
-        with:
-          ref: ${{ github.ref }}
-          download-artifact: false
-          dry-run: true
-          component: ${{ toJson(matrix.component) }}
-          platforms: ${{ needs.load-docker-build-components.outputs.platforms }}
-          tags: "${{ env.IMAGE_VERSION }}"
-        env:
-          GITHUB_TOKEN: ${{ github.token }}
   chart-release-prepare:
-    needs: [check-tag, load-docker-build-components, docker-check-build]
+    needs: [load-docker-build-components]
     runs-on: ubuntu-latest
     outputs:
       images-versions: ${{ steps.update-versions.outputs.images-versions }}
+      charts-metadata: ${{ steps.update-versions.outputs.chart-metadata }}
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -98,15 +59,21 @@ jobs:
           fetch-depth: 0
       - name: "Update versions in values"
         id: update-versions
-        uses: netcracker/qubership-workflow-hub/actions/charts-values-update-action@main
+        uses: netcracker/qubership-workflow-hub/actions/charts-values-update-action@feature/chart-publish-action
         with:
-          release-version: ${{ inputs.release }}
+          release-version: ${{ github.sha }}
+          chart-version: '1.0.0'
           config-file: .github/charts-values-update-config.yaml
+          create-release-branch: false
+          package-charts: true
+          publish-charts: true
         env:
           ${{ insert }}: ${{ vars }}
       - name: "Debug"
         run: |
           echo "Images versions: ${{ steps.update-versions.outputs.images-versions }}"
+          echo "Charts metadata: ${{ steps.update-versions.outputs.chart-metadata }}"
+          echo "Charts metadata: $(jq . <<< '${{ steps.update-versions.outputs.chart-metadata }}')" >> $GITHUB_STEP_SUMMARY
 
   docker-build:
     needs: [chart-release-prepare, load-docker-build-components]
@@ -119,71 +86,21 @@ jobs:
       - name: Get version for current component
         id: get-version
         run: |
-          echo "IMAGE_VERSION=${{ fromJson(needs.chart-release-prepare.outputs.images-versions)[matrix.component.name] || inputs.release }}" >> $GITHUB_ENV
+          echo "IMAGE_VERSION=${{ fromJson(needs.chart-release-prepare.outputs.images-versions)[matrix.component.name] || github.sha }}" >> $GITHUB_ENV
 
       - name: Docker build
         uses: netcracker/qubership-workflow-hub/actions/docker-action@v1.0.4
         with:
-          ref: release-${{ inputs.release }}
+          ref: ${{ github.ref}}
           download-artifact: false
           dry-run: false
           component: ${{ toJson(matrix.component) }}
           platforms: ${{ needs.load-docker-build-components.outputs.platforms }}
-          tags: "${{ env.IMAGE_VERSION }},latest"
+          tags: "${{ env.IMAGE_VERSION }}"
         env:
           GITHUB_TOKEN: ${{ github.token }}
-  charts-release:
-    needs: [docker-build]
-    continue-on-error: false
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-          ref: release-${{ inputs.release }}
-
-      - name: Configure Git
-        run: |
-          git config user.name "$GITHUB_ACTOR"
-          git config user.email "$GITHUB_ACTOR@users.noreply.github.com"
-
-      - name: Run chart-releaser
-        id: chart-releaser
-        uses: netcracker/chart-releaser-action@main
-        with:
-          charts_dir: charts
-          release_name_template: "{{ .Version }}"
-          skip_existing: true
-          skip_upload: true
-        env:
-          CR_TOKEN: "${{ secrets.GITHUB_TOKEN }}"
 
       - name: Show chart-releaser output
         run: |
-          echo "::debug::Changed Charts: ${{ steps.chart-releaser.outputs.changed_charts}}"
-          echo "::debug::Charts versions: ${{ steps.chart-releaser.outputs.chart_version}}"
-
-      - name: "Release-drafter"
-        uses: netcracker/release-drafter@master
-        with:
-          config-name: release-drafter-config.yml
-          publish: true
-          name: ${{ inputs.release }}
-          tag: ${{ inputs.release }}
-          version: ${{ inputs.release }}
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      - name: install bom tool
-        run: |
-          go install sigs.k8s.io/bom/cmd/bom@latest
-          echo "$(go env GOPATH)/bin" >> $GITHUB_PATH
-      - name: "Generate sbom"
-        run: bom generate .cr-release-packages -o .cr-release-packages/bom.json --format json
-      - name: Upload Assets
-        uses: netcracker/qubership-workflow-hub/actions/assets-action@v1.0.4
-        with:
-          tag: ${{ inputs.release }}
-          item-path: .cr-release-packages/*
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          echo "::debug::Charts metadata: $(jq . <<< '${{ needs.chart-release-prepare.outputs.charts-metadata }}')"
+          echo "$(jq . <<< '${{ needs.chart-release-prepare.outputs.charts-metadata }}')" >> $GITHUB_STEP_SUMMARY
