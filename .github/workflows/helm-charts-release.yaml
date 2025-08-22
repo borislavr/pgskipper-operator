@@ -73,7 +73,7 @@ jobs:
         run: |
           echo "Images versions: ${{ steps.update-versions.outputs.images-versions }}"
           echo "Charts metadata: ${{ steps.update-versions.outputs.chart-metadata }}"
-          echo "Charts metadata: ${{ steps.update-versions.outputs.chart-metadata }}" >> $GITHUB_STEP_SUMMARY
+          echo "Charts metadata: $(jq . <<< '${{ steps.update-versions.outputs.chart-metadata }}')" >> $GITHUB_STEP_SUMMARY
 
   docker-build:
     needs: [chart-release-prepare, load-docker-build-components]
