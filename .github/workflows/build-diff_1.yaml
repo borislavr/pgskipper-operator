@@ -47,16 +47,7 @@ jobs:
               - charts/**
               - docs/**
       - name: List all changed files
-        env:
-          ALL_CHANGED_FILES: ${{ steps.changed-files.outputs.all_changed_files }}
         run: |
-            if [ -z "${ALL_CHANGED_FILES}" ]; then
-              echo "ℹ️ No changes detected."
-              echo "ℹ️ No changes detected." >> $GITHUB_STEP_SUMMARY
-            else
-              echo "✅ Changed files: ${ALL_CHANGED_FILES}"
-              echo "✅ Changed files: ${ALL_CHANGED_FILES}" >> $GITHUB_STEP_SUMMARY
-            fi
             if [ "${{ steps.changed-files.outputs.pgskipper-operator_any_changed }}" == 'true' ]; then
               echo "✅ Changes detected in pgskipper-operator."
               echo "✅ Changes detected in pgskipper-operator." >> $GITHUB_STEP_SUMMARY
@@ -83,6 +74,7 @@ jobs:
               ${{ steps.changed-files.outputs.pgskipper-operator-tests_any_changed == 'true' && '{"component":[{"name":"pgskipper-operator-tests","file":"tests/Dockerfile","context":"tests"}]},' || '' }}
               ${{ steps.changed-files.outputs.docker-transfer_any_changed == 'true' && '{"component":[{"name":"pgskipper-operator-transfer","file":"docker-transfer/Dockerfile","context": "."}]},' || '' }}
             '
+            echo "${include_jobs::-1}" | tr -d '[:space:]'
             echo "include_jobs=[${include_jobs::-1}]" | tr -d '[:space:]' >> $GITHUB_OUTPUT
 
   multiplatform_build:
