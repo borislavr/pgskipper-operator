@@ -103,8 +103,10 @@ jobs:
           - name: pgskipper-operator-transfer
             file: docker-transfer/Dockerfile
             context: "."
-        exclude: ${{ fromJson(needs.diff-detect.outputs.exclude-jobs) }}
-        #include: ${{ fromJson(needs.diff-detect.outputs.include-jobs) }}
+        exclude:
+          - component:
+              - name: pgskipper-operator
+        #exclude: ${{ fromJson(needs.diff-detect.outputs.exclude-jobs) }}
     runs-on: ubuntu-latest
     steps:
       - name: Validate
@@ -115,48 +117,20 @@ jobs:
           fi
       - name: Checkout
         uses: actions/checkout@v4
-        with:
-          fetch-depth: 0  # OR "2" -> To retrieve the preceding commit.
-      - name: Get changed files
-        id: changed-files
-        uses: tj-actions/changed-files@ed68ef82c095e0d48ec87eccea555d944a631a4c # v46
-      # NOTE: `since_last_remote_commit: true` is implied by default and falls back to the previous local commit.
-        with:
-          #dir_names: 'true'
-          dir_names_exclude_current_dir: 'true'
-          #dir_names_max_depth: '1'
-          files: "${{ matrix.component.directory }}"
-          files_separator: ','
-      - name: List all changed files
-        env:
-          ALL_CHANGED_FILES: ${{ steps.changed-files.outputs.all_changed_files }}
-        run: |
-            echo "${ALL_CHANGED_FILES}"
-            echo "✅ Changed files in ${{ matrix.component.directory }}: ${ALL_CHANGED_FILES}" >> $GITHUB_STEP_SUMMARY
-      - name: Skip build if no changes
-        if: ${{ steps.changed-files.outputs.any_changed == 'false' }}
-        run: |
-          echo "ℹ️ No changes in ${{ matrix.component.directory }}, skipping build of ${{ matrix.component.name }}." >> $GITHUB_STEP_SUMMARY
-          echo "ℹ️ No changes in ${{ matrix.component.directory }}, skipping build."
-          exit 0
       - name: Set up QEMU
-        if: ${{ steps.changed-files.outputs.any_changed == 'true' }}
         uses: docker/setup-qemu-action@v3
       - name: Set up Docker Buildx
-        if: ${{ steps.changed-files.outputs.any_changed == 'true' }}
         uses: docker/setup-buildx-action@v3
       - name: Login to Docker Hub
-        if: ${{ steps.changed-files.outputs.any_changed == 'true' }}
         uses: docker/login-action@v3
         with:
           registry: ghcr.io
           username: ${GITHUB_ACTOR}
           password: ${{secrets.GITHUB_TOKEN}}
       - name: Prepare Tag
-        if: ${{ steps.changed-files.outputs.any_changed == 'true' }}
         run: echo "TAG_NAME=$(echo ${TAG_NAME} | sed 's@refs/tags/@@;s@refs/heads/@@;s@/@_@g')" >> $GITHUB_ENV
       - name: Get package IDs for delete
-        if: ${{ steps.changed-files.outputs.any_changed == 'true' && env.PUSH }}
+        if: ${{ env.PUSH }}
         id: get-ids-for-delete
         uses: Netcracker/get-package-ids@v0.0.1
         with:
@@ -164,7 +138,6 @@ jobs:
           component-tag: ${{ env.TAG_NAME }}
           access-token: ${{secrets.GITHUB_TOKEN}}
       - name: Build and push
-        if: ${{ steps.changed-files.outputs.any_changed == 'true' }}
         uses: docker/build-push-action@v6
         with:
           no-cache: true
@@ -175,7 +148,7 @@ jobs:
           tags: ghcr.io/${{ github.repository_owner }}/${{ matrix.component.name }}:${{ env.TAG_NAME }}
           provenance: false
       - uses: actions/delete-package-versions@v5
-        if: ${{ steps.get-ids-for-delete.outputs.ids-for-delete != '' && steps.changed-files.outputs.any_changed == 'true' }}
+        if: ${{ steps.get-ids-for-delete.outputs.ids-for-delete != '' }}
         with:
           package-name: ${{ matrix.component.name }}
           package-type: 'container'
