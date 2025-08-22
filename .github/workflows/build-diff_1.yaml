@@ -3,12 +3,6 @@ on:
   push:
     branches:
       - '**'
-    paths:
-      - 'build/**'
-      - 'tests/**'
-      - 'docker-transfer/**'
-      - 'charts/**'
-      - 'docs/**'
 
 concurrency:
   group: build-and-push-${{ github.ref }}
@@ -22,12 +16,7 @@ jobs:
   diff-detect:
     runs-on: ubuntu-24.04
     outputs:
-      any-changed: ${{ steps.changed-files.outputs.any_changed }}
-      pgskipper-operator: ${{ steps.changed-files.outputs.pgskipper-operator_any_changed }}
-      pgskipper-operator-tests: ${{ steps.changed-files.outputs.pgskipper-operator-tests_any_changed }}
-      docker-transfer: ${{ steps.changed-files.outputs.docker-transfer_any_changed }}
       exclude-jobs: ${{ steps.list-changed-files.outputs.exclude_jobs }}
-      #include-jobs: ${{ steps.changed-files.outputs.include_jobs }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -40,7 +29,16 @@ jobs:
           dir_names_exclude_current_dir: 'true'
           files_yaml: |
             pgskipper-operator:
+              - api/**
               - build/**
+              - cmd/**
+              - controllers/**
+              - generator/**
+              - pkg/**
+              - version/**
+              - go.*
+              - Makefile
+              - tools.go
             pgskipper-operator-tests:
               - tests/**
             docker-transfer:
@@ -71,13 +69,6 @@ jobs:
             else
               echo "ℹ️ No changes in docker-transfer."
             fi
-            # include_jobs='
-            #   ${{ steps.changed-files.outputs.pgskipper-operator_any_changed == 'true' && '{"component":[{"name":"pgskipper-operator","file":"build/Dockerfile","context":"."}]},' || '' }}
-            #   ${{ steps.changed-files.outputs.pgskipper-operator-tests_any_changed == 'true' && '{"component":[{"name":"pgskipper-operator-tests","file":"tests/Dockerfile","context":"tests"}]},' || '' }}
-            #   ${{ steps.changed-files.outputs.docker-transfer_any_changed == 'true' && '{"component":[{"name":"pgskipper-operator-transfer","file":"docker-transfer/Dockerfile","context": "."}]},' || '' }}
-            # '
-            #echo "[${include_jobs::-1}]" | tr -d '[:space:]'
-            #echo "include_jobs=[${include_jobs::-1}]" | tr -d '[:space:]' >> $GITHUB_OUTPUT
 
             exclude_jobs='
               ${{ steps.changed-files.outputs.pgskipper-operator_any_changed == 'false' && '{"component":{"name":"pgskipper-operator"}},' || '' }}
@@ -103,9 +94,6 @@ jobs:
           - name: pgskipper-operator-transfer
             file: docker-transfer/Dockerfile
             context: "."
-        # exclude:
-        #   - component:
-        #       name: pgskipper-operator
         exclude: ${{ fromJson(needs.diff-detect.outputs.exclude-jobs) }}
     runs-on: ubuntu-latest
     steps:
@@ -129,14 +117,6 @@ jobs:
           password: ${{secrets.GITHUB_TOKEN}}
       - name: Prepare Tag
         run: echo "TAG_NAME=$(echo ${TAG_NAME} | sed 's@refs/tags/@@;s@refs/heads/@@;s@/@_@g')" >> $GITHUB_ENV
-      # - name: Get package IDs for delete
-      #   if: ${{ env.PUSH }}
-      #   id: get-ids-for-delete
-      #   uses: Netcracker/get-package-ids@v0.0.1
-      #   with:
-      #     component-name: ${{ matrix.component.name }}
-      #     component-tag: ${{ env.TAG_NAME }}
-      #     access-token: ${{secrets.GITHUB_TOKEN}}
       - name: Build and push
         uses: docker/build-push-action@v6
         with:
@@ -147,9 +127,3 @@ jobs:
           push: ${{ env.PUSH }}
           tags: ghcr.io/${{ github.repository_owner }}/${{ matrix.component.name }}:${{ env.TAG_NAME }}
           provenance: false
-      # - uses: actions/delete-package-versions@v5
-      #   if: ${{ steps.get-ids-for-delete.outputs.ids-for-delete != '' }}
-      #   with:
-      #     package-name: ${{ matrix.component.name }}
-      #     package-type: 'container'
-      #     package-version-ids: ${{ steps.get-ids-for-delete.outputs.ids-for-delete }}
