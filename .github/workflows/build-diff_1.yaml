@@ -26,7 +26,7 @@ jobs:
       pgskipper-operator: ${{ steps.changed-files.outputs.pgskipper-operator_any_changed }}
       pgskipper-operator-tests: ${{ steps.changed-files.outputs.pgskipper-operator-tests_any_changed }}
       docker-transfer: ${{ steps.changed-files.outputs.docker-transfer_any_changed }}
-      exclude-jobs: ${{ steps.changed-files.outputs.exclude_jobs }}
+      exclude-jobs: ${{ steps.list-changed-files.outputs.exclude_jobs }}
       #include-jobs: ${{ steps.changed-files.outputs.include_jobs }}
     steps:
       - name: Checkout
@@ -48,6 +48,7 @@ jobs:
               - charts/**
               - docs/**
       - name: List all changed files
+        id: list-changed-files
         run: |
             if [ "${{ steps.changed-files.outputs.pgskipper-operator_any_changed }}" == 'true' ]; then
               echo "✅ Changes detected in pgskipper-operator."
