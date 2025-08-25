@@ -99,8 +99,3 @@ jobs:
           tags: "${{ env.IMAGE_VERSION }}"
         env:
           GITHUB_TOKEN: ${{ github.token }}
-
-      - name: Show chart-releaser output
-        run: |
-          echo "::debug::Charts metadata: $(jq . <<< '${{ needs.chart-release-prepare.outputs.charts-metadata }}')"
-          echo "$(jq . <<< '${{ needs.chart-release-prepare.outputs.charts-metadata }}')" >> $GITHUB_STEP_SUMMARY
